@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Language Recognition - Web Interface</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2">🤟 Sign Language Recognition</h1>
+            <p class="text-gray-400">Real-time ASL to Speech Conversion</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Video Feed -->
+            <div class="lg:col-span-2">
+                <div class="bg-gray-800 rounded-xl p-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold">Camera Feed</h2>
+                        <span id="mode-badge" class="px-3 py-1 bg-blue-600 rounded-full text-sm">STATIC MODE</span>
+                    </div>
+                    <div class="relative">
+                        <img id="video-stream" src="/video_feed" 
+                             class="w-full rounded-lg" 
+                             alt="Video Stream">
+                        <div class="absolute bottom-4 left-4 bg-black/70 px-4 py-2 rounded-lg">
+                            <span class="text-green-400 font-mono" id="fps-display">FPS: --</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls & Results -->
+            <div class="space-y-6">
+                <!-- Prediction Panel -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold mb-4">Current Prediction</h3>
+                    <div class="text-center py-8 bg-gray-700 rounded-lg">
+                        <span id="prediction" class="text-6xl font-bold text-green-400">-</span>
+                    </div>
+                    <div class="mt-4 flex justify-between text-sm">
+                        <span class="text-gray-400">Confidence:</span>
+                        <span id="confidence" class="text-white">0%</span>
+                    </div>
+                    <div class="mt-2 h-2 bg-gray-600 rounded-full overflow-hidden">
+                        <div id="confidence-bar" class="h-full bg-green-500 transition-all" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold mb-4">Controls</h3>
+                    <div class="space-y-3">
+                        <button onclick="toggleMode()" 
+                                class="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition">
+                            Toggle Mode (Static/Dynamic)
+                        </button>
+                        <button onclick="speakPrediction()" 
+                                class="w-full py-3 bg-green-600 hover:bg-green-700 rounded-lg font-medium transition">
+                            🔊 Speak Prediction
+                        </button>
+                        <button onclick="clearHistory()" 
+                                class="w-full py-3 bg-gray-600 hover:bg-gray-700 rounded-lg font-medium transition">
+                            Clear History
+                        </button>
+                    </div>
+                </div>
+
+                <!-- History -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold mb-4">Recognition History</h3>
+                    <div id="history" class="space-y-2 max-h-48 overflow-y-auto">
+                        <p class="text-gray-500 text-sm">No gestures recognized yet...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+            <div class="bg-gray-800 rounded-xl p-4 text-center">
+                <div class="text-3xl mb-2">✋</div>
+                <h4 class="font-semibold">21 Landmarks</h4>
+                <p class="text-gray-400 text-sm">MediaPipe hand tracking</p>
+            </div>
+            <div class="bg-gray-800 rounded-xl p-4 text-center">
+                <div class="text-3xl mb-2">🧠</div>
+                <h4 class="font-semibold">85% Accuracy</h4>
+                <p class="text-gray-400 text-sm">CNN-LSTM hybrid model</p>
+            </div>
+            <div class="bg-gray-800 rounded-xl p-4 text-center">
+                <div class="text-3xl mb-2">🔊</div>
+                <h4 class="font-semibold">Text-to-Speech</h4>
+                <p class="text-gray-400 text-sm">Real-time voice output</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPrediction = null;
+        let history = [];
+
+        // Poll for status updates
+        setInterval(async () => {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                // Update mode badge
+                document.getElementById('mode-badge').textContent = 
+                    data.mode.toUpperCase() + ' MODE';
+                
+                // Update prediction
+                if (data.prediction) {
+                    document.getElementById('prediction').textContent = data.prediction;
+                    if (data.prediction !== currentPrediction) {
+                        addToHistory(data.prediction);
+                        currentPrediction = data.prediction;
+                    }
+                }
+                
+                // Update FPS
+                if (data.stats && data.stats.fps) {
+                    document.getElementById('fps-display').textContent = 
+                        `FPS: ${data.stats.fps.toFixed(1)}`;
+                }
+            } catch (e) {
+                console.error('Status update failed:', e);
+            }
+        }, 500);
+
+        async function toggleMode() {
+            await fetch('/api/toggle_mode', { method: 'POST' });
+        }
+
+        function speakPrediction() {
+            if (currentPrediction && 'speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(currentPrediction);
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        function clearHistory() {
+            history = [];
+            document.getElementById('history').innerHTML = 
+                '<p class="text-gray-500 text-sm">No gestures recognized yet...</p>';
+            currentPrediction = null;
+            document.getElementById('prediction').textContent = '-';
+        }
+
+        function addToHistory(gesture) {
+            history.unshift({ gesture, time: new Date().toLocaleTimeString() });
+            if (history.length > 10) history.pop();
+            
+            const historyEl = document.getElementById('history');
+            historyEl.innerHTML = history.map(h => `
+                <div class="flex justify-between bg-gray-700 px-3 py-2 rounded">
+                    <span class="font-medium">${h.gesture}</span>
+                    <span class="text-gray-400 text-sm">${h.time}</span>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

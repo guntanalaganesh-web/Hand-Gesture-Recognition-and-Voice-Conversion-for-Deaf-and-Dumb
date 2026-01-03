@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Language Recognition - Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2">🤟 Hand Gesture Recognition & Voice Conversion</h1>
+            <p class="text-gray-400">Real-time ASL to Speech using CNN-LSTM | 85% Accuracy</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Video Feed Simulation -->
+            <div class="lg:col-span-2">
+                <div class="bg-gray-800 rounded-xl p-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold">📹 Live Camera Feed</h2>
+                        <span class="px-3 py-1 bg-green-600 rounded-full text-sm animate-pulse">● LIVE</span>
+                    </div>
+                    <div class="relative bg-gray-700 rounded-lg overflow-hidden" style="aspect-ratio: 4/3;">
+                        <!-- Simulated video with hand -->
+                        <svg viewBox="0 0 640 480" class="w-full h-full">
+                            <!-- Background -->
+                            <rect fill="#1f2937" width="640" height="480"/>
+                            
+                            <!-- Hand silhouette -->
+                            <g transform="translate(220, 120)">
+                                <!-- Palm -->
+                                <ellipse cx="100" cy="150" rx="80" ry="100" fill="#4ade80" opacity="0.3"/>
+                                
+                                <!-- Fingers -->
+                                <rect x="30" y="20" width="25" height="80" rx="12" fill="#4ade80" opacity="0.3"/>
+                                <rect x="60" y="0" width="25" height="100" rx="12" fill="#4ade80" opacity="0.3"/>
+                                <rect x="90" y="-5" width="25" height="105" rx="12" fill="#4ade80" opacity="0.3"/>
+                                <rect x="120" y="10" width="25" height="90" rx="12" fill="#4ade80" opacity="0.3"/>
+                                <rect x="150" y="40" width="25" height="70" rx="12" fill="#4ade80" opacity="0.3"/>
+                                
+                                <!-- Landmarks -->
+                                <circle cx="42" cy="20" r="6" fill="#22c55e"/>
+                                <circle cx="72" cy="0" r="6" fill="#22c55e"/>
+                                <circle cx="102" cy="-5" r="6" fill="#22c55e"/>
+                                <circle cx="132" cy="10" r="6" fill="#22c55e"/>
+                                <circle cx="162" cy="40" r="6" fill="#22c55e"/>
+                                
+                                <!-- Palm landmarks -->
+                                <circle cx="100" cy="150" r="6" fill="#22c55e"/>
+                                <circle cx="50" cy="120" r="5" fill="#22c55e"/>
+                                <circle cx="70" cy="100" r="5" fill="#22c55e"/>
+                                <circle cx="100" cy="95" r="5" fill="#22c55e"/>
+                                <circle cx="130" cy="100" r="5" fill="#22c55e"/>
+                                <circle cx="150" cy="115" r="5" fill="#22c55e"/>
+                                
+                                <!-- Connection lines -->
+                                <line x1="42" y1="20" x2="50" y2="120" stroke="#22c55e" stroke-width="2"/>
+                                <line x1="72" y1="0" x2="70" y2="100" stroke="#22c55e" stroke-width="2"/>
+                                <line x1="102" y1="-5" x2="100" y2="95" stroke="#22c55e" stroke-width="2"/>
+                                <line x1="132" y1="10" x2="130" y2="100" stroke="#22c55e" stroke-width="2"/>
+                                <line x1="162" y1="40" x2="150" y2="115" stroke="#22c55e" stroke-width="2"/>
+                            </g>
+                            
+                            <!-- Info overlay -->
+                            <rect x="0" y="0" width="640" height="100" fill="rgba(0,0,0,0.7)"/>
+                            <text x="20" y="35" fill="#22c55e" font-size="24" font-family="monospace">FPS: 32.4</text>
+                            <text x="200" y="35" fill="#facc15" font-size="24" font-family="monospace">Mode: STATIC</text>
+                            <text x="20" y="70" fill="#22c55e" font-size="28" font-family="sans-serif" font-weight="bold">Gesture: A</text>
+                            <text x="250" y="70" fill="#22c55e" font-size="22" font-family="monospace">Confidence: 94%</text>
+                            
+                            <!-- Detected label -->
+                            <rect x="520" y="20" width="100" height="60" rx="10" fill="#22c55e"/>
+                            <text x="570" y="60" fill="white" font-size="36" font-weight="bold" text-anchor="middle">A</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="space-y-6">
+                <!-- Current Prediction -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold mb-4">🎯 Current Prediction</h3>
+                    <div class="text-center py-8 bg-gradient-to-br from-green-600 to-green-800 rounded-lg">
+                        <span class="text-8xl font-bold">A</span>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-gray-400">Confidence</span>
+                            <span class="text-green-400 font-bold">94%</span>
+                        </div>
+                        <div class="h-3 bg-gray-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-green-500" style="width: 94%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Speech Output -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold mb-4">🔊 Speech Output</h3>
+                    <div class="bg-gray-700 rounded-lg p-4">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                            <span class="text-green-400">TTS Active</span>
+                        </div>
+                        <p class="text-lg">"Letter A"</p>
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                        <button class="flex-1 py-2 bg-blue-600 rounded-lg">Speak</button>
+                        <button class="flex-1 py-2 bg-gray-600 rounded-lg">Stop</button>
+                    </div>
+                </div>
+
+                <!-- History -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold mb-4">📝 Recognition History</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between bg-gray-700 px-3 py-2 rounded">
+                            <span class="font-bold text-green-400">A</span>
+                            <span class="text-gray-400 text-sm">12:34:56</span>
+                        </div>
+                        <div class="flex justify-between bg-gray-700 px-3 py-2 rounded">
+                            <span class="font-bold text-green-400">HELLO</span>
+                            <span class="text-gray-400 text-sm">12:34:52</span>
+                        </div>
+                        <div class="flex justify-between bg-gray-700 px-3 py-2 rounded">
+                            <span class="font-bold text-green-400">B</span>
+                            <span class="text-gray-400 text-sm">12:34:48</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Architecture -->
+        <div class="mt-8 bg-gray-800 rounded-xl p-6">
+            <h3 class="text-xl font-semibold mb-6 text-center">🧠 CNN-LSTM Hybrid Architecture (85% Accuracy)</h3>
+            <div class="flex flex-wrap justify-center items-center gap-4">
+                <div class="bg-blue-600 px-4 py-3 rounded-lg text-center">
+                    <div class="text-2xl">📹</div>
+                    <div class="text-sm">Input</div>
+                    <div class="text-xs text-blue-200">64×64×1</div>
+                </div>
+                <div class="text-2xl">→</div>
+                <div class="bg-purple-600 px-4 py-3 rounded-lg text-center">
+                    <div class="text-2xl">🔲</div>
+                    <div class="text-sm">Conv2D</div>
+                    <div class="text-xs text-purple-200">32→64→128</div>
+                </div>
+                <div class="text-2xl">→</div>
+                <div class="bg-orange-600 px-4 py-3 rounded-lg text-center">
+                    <div class="text-2xl">🔄</div>
+                    <div class="text-sm">BiLSTM</div>
+                    <div class="text-xs text-orange-200">128→64</div>
+                </div>
+                <div class="text-2xl">→</div>
+                <div class="bg-green-600 px-4 py-3 rounded-lg text-center">
+                    <div class="text-2xl">🎯</div>
+                    <div class="text-sm">Dense</div>
+                    <div class="text-xs text-green-200">256→Output</div>
+                </div>
+                <div class="text-2xl">→</div>
+                <div class="bg-pink-600 px-4 py-3 rounded-lg text-center">
+                    <div class="text-2xl">🔊</div>
+                    <div class="text-sm">TTS</div>
+                    <div class="text-xs text-pink-200">pyttsx3</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+            <div class="bg-gray-800 rounded-xl p-4 text-center">
+                <div class="text-3xl font-bold text-green-400">85%</div>
+                <div class="text-gray-400">Model Accuracy</div>
+            </div>
+            <div class="bg-gray-800 rounded-xl p-4 text-center">
+                <div class="text-3xl font-bold text-blue-400">30+</div>
+                <div class="text-gray-400">FPS Real-time</div>
+            </div>
+            <div class="bg-gray-800 rounded-xl p-4 text-center">
+                <div class="text-3xl font-bold text-purple-400">21</div>
+                <div class="text-gray-400">Hand Landmarks</div>
+            </div>
+            <div class="bg-gray-800 rounded-xl p-4 text-center">
+                <div class="text-3xl font-bold text-orange-400">26+</div>
+                <div class="text-gray-400">Gesture Classes</div>
+            </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <div class="mt-8 text-center text-gray-400">
+            <p>Built with TensorFlow • PyTorch • OpenCV • MediaPipe • pyttsx3</p>
+        </div>
+    </div>
+</body>
+</html>
